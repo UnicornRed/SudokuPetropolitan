@@ -14,24 +14,16 @@ void Sudoku::Preparing()
         throw new std::invalid_argument("N must be the square of an integer.");
 
     field.resize(n, std::vector<int>(n));
-    hypotheses.resize(n, std::vector<std::set<int>>(n));
 
     std::set<int> option;
 
     for (size_t i{1}; i <= n; ++i)
         option.insert(i);
 
+    hypotheses.resize(n, std::vector<std::set<int>>(n, option));
     rows.resize(n);
     columns.resize(n);
     blocks.resize(n);
-
-    std::for_each(hypotheses.begin(), hypotheses.end(), [&option](std::vector<std::set<int>>& v)
-    {
-        std::for_each(v.begin(), v.end(), [&option](std::set<int>& s)
-        {
-            s.insert(option.begin(), option.end());
-        });
-    });
 }
 
 void Sudoku::SetNumber(int i, int j, int num)
@@ -59,30 +51,9 @@ Sudoku::Sudoku(size_t _n) : emptyCells(_n * _n), n(_n)
     Preparing();
 }
 
-Sudoku::Sudoku(size_t _n, std::vector<std::vector<int>> _field) : emptyCells(_n * _n), n(_n)
-{
-    Preparing();
-
-    if (_field.size() != n || (_field.size() != 0 && _field[0].size() != n))
-        throw new std::invalid_argument("The field must be of size n by n.");
-
-    std::set<int> option;
-
-    for (size_t i{1}; i <= n; ++i)
-        option.insert(i);
-
-    for (size_t i{}; i < n; ++i)
-        for (size_t j{}; j < n; ++j)
-            SetNumber(i, j, _field[i][j]);
-}
-
-std::recursive_mutex mtx;
-
 int Sudoku::Solve()
 {
-    flagSetNumb = true;
-
-    while (emptyCells > 0 && flagSetNumb)
+    while (emptyCells > 0)
     {
         flagSetNumb = false;
 
